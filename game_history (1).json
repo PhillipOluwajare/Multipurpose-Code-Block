@@ -1,0 +1,65 @@
+[
+    {
+        "result": "Win",
+        "you": 1,
+        "computer": 0,
+        "rounds": 2,
+        "timestamp": "2025-07-31 11:08:26"
+    },
+    {
+        "result": "Tie",
+        "you": 1,
+        "computer": 1,
+        "rounds": 3,
+        "timestamp": "2025-07-31 12:09:45"
+    },
+    {
+        "result": "Win",
+        "you": 1,
+        "computer": 0,
+        "rounds": 3,
+        "timestamp": "2025-07-31 12:10:22"
+    },
+    {
+        "result": "Win",
+        "you": 5,
+        "computer": 2,
+        "rounds": 10,
+        "timestamp": "2025-07-31 12:15:22"
+    },
+    {
+        "result": "Loss",
+        "you": 28,
+        "computer": 40,
+        "rounds": 100,
+        "timestamp": "2025-08-01 11:41:34"
+    },
+    {
+        "result": "Loss",
+        "you": 19,
+        "computer": 28,
+        "rounds": 200,
+        "timestamp": "2025-08-08 09:47:51"
+    },
+    {
+        "result": "Win",
+        "you": 1,
+        "computer": 0,
+        "rounds": 2,
+        "timestamp": "2025-08-08 09:53:25"
+    },
+    {
+        "result": "Loss",
+        "you": 1,
+        "computer": 2,
+        "rounds": 3,
+        "timestamp": "2025-08-08 10:17:45"
+    },
+    {
+        "result": "Loss",
+        "you": 1,
+        "computer": 2,
+        "rounds": 3,
+        "timestamp": "2025-08-08 10:18:41"
+    }
+]

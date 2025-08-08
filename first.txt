@@ -1,0 +1,203 @@
+import random
+import json
+import os
+from datetime import datetime
+import hashlib
+HISTORY_FILE = 'game_history.json'
+password_set = None  # Will store the set password in memory
+
+# ---------------- Password Functions ----------------
+
+def hash_password(password):
+    """Return the SHA-256 hash of the password."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def pass_word():
+    """Set a password for program access."""
+    print('Your Password can either be numerical or alphabetical.')
+    alpha_num = input('Type a for alphabetical and n for numerical: ').strip().lower()
+    if alpha_num == 'a':
+        password = input('Enter your password (alphabetical): ')
+    elif alpha_num == 'n':
+        password = input('Enter your password (numerical): ')
+    else:
+        print('Invalid choice. Please try again.')
+        return pass_word()
+    
+    if len(password) < 6:
+        print('Password must be at least 6 characters long. Please try again.')
+        return pass_word()
+    
+    hashed = hash_password(password)
+    print('Password has been set securely.')
+    return hashed
+
+def vef_pass():
+    """Verify password before allowing access."""
+    pass_ent = input('Enter your password to continue: ')
+    if hash_password(pass_ent) == password_set:
+        print('Password verified. You can continue.')
+    else:
+        print('Incorrect password. Exiting program...')
+        main()
+
+# ---------------- History Functions ----------------
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+game_history = load_history()
+
+def save_history():
+    with open(HISTORY_FILE, 'w') as f:
+        json.dump(game_history, f, indent=4)
+
+def show_history():
+    vef_pass()
+    if not game_history:
+        print('\nNo games played yet.')
+        return
+    print('\n--- Game History ---')
+    for i, entry in enumerate(game_history, 1):
+        print(f"{i}. [{entry['timestamp']}] Result: {entry['result']} | You: {entry['you']} | "
+              f"Computer: {entry['computer']} | Rounds: {entry['rounds']}")
+    print('--------------------')
+
+def clear_history():
+    vef_pass()
+    if not game_history:
+        print('No history to clear.')
+        return
+    confirm = input("Are you sure you want to delete all saved history? (yes/no): ").strip().lower()
+    if confirm == 'yes':
+        game_history = []
+        if os.path.exists(HISTORY_FILE):
+            os.remove(HISTORY_FILE)
+        print("History cleared successfully.")
+    else:
+        print("Canceled. History not deleted.")
+
+# ---------------- Program Functions ----------------
+def calc():
+    print('\nWelcome to the calculator.')
+    while True:
+        op = input('Enter operation (add, sub, mul, div) or "exit": ').strip().lower()
+        if op == 'exit':
+            break
+        if op not in ['add', 'sub', 'mul', 'div']:
+            print('Invalid operation.')
+            continue
+        try:
+            a = float(input('Enter first number: '))
+            b = float(input('Enter second number: '))
+        except ValueError:
+            print('Invalid input. Please enter numbers.')
+            continue
+        if op == 'add':
+            result = a + b
+        elif op == 'sub':
+            result = a - b
+        elif op == 'mul':
+            result = a * b
+        elif op == 'div':
+            if b == 0:
+                print('Error: Division by zero.')
+                continue
+            result = a / b
+        print(f'Result: {result}')
+
+def rock_paper_scissors():
+    choices = ['rock', 'paper', 'scissors']
+
+    while True:
+        round_input = input('How many rounds would you like to play? (number or "exit"): ').strip().lower()
+        if round_input == 'exit':
+            break
+        try:
+            round_quest = int(round_input)
+            if round_quest <= 0:
+                print('Enter a positive number.')
+                continue
+        except ValueError:
+            print('Invalid input.')
+            continue
+
+        score = 0
+        comp_score = 0
+
+        for round_num in range(1, round_quest + 1):
+            print(f'\nRound {round_num}')
+            user_choice = input('Enter rock, paper, or scissors (or "exit"): ').strip().lower()
+            if user_choice == 'exit':
+                break
+
+            computer_choice = random.choice(choices)
+            print(f'Computer chose: {computer_choice}')
+
+            if user_choice == computer_choice:
+                print('Tie!')
+            elif (user_choice in ['rock', 'r'] and computer_choice == 'scissors') or \
+                 (user_choice in ['paper', 'p'] and computer_choice == 'rock') or \
+                 (user_choice in ['scissors', 's'] and computer_choice == 'paper'):
+                print('You win this round!')
+                score += 1
+            elif user_choice not in choices and user_choice not in ['r', 'p', 's']:
+                print('Invalid choice.')
+                continue
+            else:
+                print('Computer wins this round!')
+                comp_score += 1
+
+        # Game result
+        if score > comp_score:
+            result = 'Win'
+            print('\nYou won the game!')
+        elif score < comp_score:
+            result = 'Loss'
+            print('\nYou lost the game.')
+        else:
+            result = 'Tie'
+            print('\nIt\'s a tie!')
+
+        # Append to history with timestamp
+        game_history.append({
+            'result': result,
+            'you': score,
+            'computer': comp_score,
+            'rounds': round_quest,
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+
+        save_history()
+
+        cont = input('Play again? (yes/no): ').strip().lower()
+        if cont != 'yes':
+            break
+
+# ---------------- Main Program ----------------
+def main():
+    print('Welcome to the multitasking program!')
+    input('Press Enter to continue...')
+    vef_pass()
+    while True:
+        prog_choice = input('\nWhat program would you like to use?\n'
+                            'Options: Calc, Rock Paper Scissors, History, Clear History, or Exit: ').strip().lower()
+        if prog_choice == 'exit':
+            print('Thank you for using the multitasking program. Goodbye!')
+            break
+        elif prog_choice == 'calc':
+            calc()
+        elif prog_choice in ['rock paper scissors', 'rps']:
+            rock_paper_scissors()
+        elif prog_choice == 'history':
+            show_history()
+        elif prog_choice == 'clear history':
+            clear_history()
+        else:
+            print('Invalid choice. Please try again.')
+
+# ---------------- Program Start ----------------
+password_set = pass_word()
+main()
