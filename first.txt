@@ -1,45 +1,53 @@
 import random
 import json
 import os
-from datetime import datetime
 import hashlib
+from datetime import datetime
+
 HISTORY_FILE = 'game_history.json'
-password_set = None  # Will store the set password in memory
+PASSWORD_FILE = 'password.txt'
+password_hash = None  # Will store the hashed password in memory
 
 # ---------------- Password Functions ----------------
-
 def hash_password(password):
-    """Return the SHA-256 hash of the password."""
+    """Hash the password using SHA-256."""
     return hashlib.sha256(password.encode()).hexdigest()
 
 def pass_word():
     """Set a password for program access."""
     print('Your Password can either be numerical or alphabetical.')
     alpha_num = input('Type a for alphabetical and n for numerical: ').strip().lower()
-    if alpha_num == 'a':
-        password = input('Enter your password (alphabetical): ')
-    elif alpha_num == 'n':
-        password = input('Enter your password (numerical): ')
-    else:
+    
+    if alpha_num not in ['a', 'n']:
         print('Invalid choice. Please try again.')
         return pass_word()
-    
+
+    password = input('Enter your password: ')
     if len(password) < 6:
         print('Password must be at least 6 characters long. Please try again.')
         return pass_word()
-    
+
     hashed = hash_password(password)
-    print('Password has been set securely.')
+    with open(PASSWORD_FILE, 'w') as f:
+        f.write(hashed)
+    print('Password set successfully!')
     return hashed
 
 def vef_pass():
     """Verify password before allowing access."""
+    if not os.path.exists(PASSWORD_FILE):
+        print("No password found. Please set one first.")
+        exit()
+
+    with open(PASSWORD_FILE, 'r') as f:
+        saved_hash = f.read().strip()
+
     pass_ent = input('Enter your password to continue: ')
-    if hash_password(pass_ent) == password_set:
+    if hash_password(pass_ent) == saved_hash:
         print('Password verified. You can continue.')
     else:
         print('Incorrect password. Exiting program...')
-        main()
+        exit()
 
 # ---------------- History Functions ----------------
 def load_history():
@@ -66,6 +74,7 @@ def show_history():
     print('--------------------')
 
 def clear_history():
+    global game_history
     vef_pass()
     if not game_history:
         print('No history to clear.')
@@ -79,7 +88,7 @@ def clear_history():
     else:
         print("Canceled. History not deleted.")
 
-# ---------------- Program Functions ----------------
+# ---------------- Calculator ----------------
 def calc():
     print('\nWelcome to the calculator.')
     while True:
@@ -108,6 +117,7 @@ def calc():
             result = a / b
         print(f'Result: {result}')
 
+# ---------------- Rock Paper Scissors ----------------
 def rock_paper_scissors():
     choices = ['rock', 'paper', 'scissors']
 
@@ -126,12 +136,17 @@ def rock_paper_scissors():
 
         score = 0
         comp_score = 0
+        round_num = 1
 
-        for round_num in range(1, round_quest + 1):
+        while round_num <= round_quest:
             print(f'\nRound {round_num}')
             user_choice = input('Enter rock, paper, or scissors (or "exit"): ').strip().lower()
             if user_choice == 'exit':
                 break
+
+            if user_choice not in choices and user_choice not in ['r', 'p', 's']:
+                print('Invalid choice. Try again.')
+                continue  # Don't advance round number
 
             computer_choice = random.choice(choices)
             print(f'Computer chose: {computer_choice}')
@@ -143,12 +158,11 @@ def rock_paper_scissors():
                  (user_choice in ['scissors', 's'] and computer_choice == 'paper'):
                 print('You win this round!')
                 score += 1
-            elif user_choice not in choices and user_choice not in ['r', 'p', 's']:
-                print('Invalid choice.')
-                continue
             else:
                 print('Computer wins this round!')
                 comp_score += 1
+
+            round_num += 1  # Advance only on valid input
 
         # Game result
         if score > comp_score:
@@ -199,5 +213,7 @@ def main():
             print('Invalid choice. Please try again.')
 
 # ---------------- Program Start ----------------
-password_set = pass_word()
+if not os.path.exists(PASSWORD_FILE):
+    password_hash = pass_word()
+
 main()
